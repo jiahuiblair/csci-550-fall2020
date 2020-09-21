@@ -1,3 +1,24 @@
+def read_csv(file_path):
+	colnames = ""
+	temp_mat = []
+	with open(file_path, 'r') as file:
+		lines = file.readlines()
+	
+	colnames = lines[0].strip().split(",")
+	lines = lines[1:]
+	for line in lines:
+		row = line.strip().split(",")
+		temp_mat.append(row)
+	return temp_mat,colnames
+
+data, colnames = read_csv("txn_by_dept.csv")
+
+unique_txns = set([data[i][0] for i in range(len(data))] )
+unique_depts = set([data[i][1] for i in range(len(data))] )
+
+unique_txns  = list(unique_txns)
+unique_depts = list(unique_depts)
+
 
 def load_tranc_db(file_path):
 	D = []
@@ -39,8 +60,8 @@ class Node:
 		for child in self.children:
 			print(child.dept_name)
 
-def compute_support(node_list, data_frame):
-	for 
+# def compute_support(node_list, data_frame):
+# 	for 
 
 
 
@@ -60,7 +81,7 @@ k = 1
 
 Ck = root_node.children
 
-while(len(Ck) != 0): 
+# while(len(Ck) != 0): 
 	# compute support
 	# check removal of X from Ck
 	# extend tree 
