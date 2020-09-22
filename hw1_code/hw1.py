@@ -36,13 +36,13 @@ def load_tranc_db(file_path):
 ############   input: dataframe df, unique_depts, minsup
 ############   output: Frequent item set
 class Node:
-	def __init__(self, dept_name = set(), sup = 0, parent = "", children = [],c=0,rsup=0):
+	def __init__(self, dept_name = set(), sup = 0, parent = "", children = [],c=0,r_sup=0):
 		self.dept_name = dept_name
 		self.sup = sup
 		self.children = children
 		self.parent = parent
 		self.c=c
-		self.rsup=rsup
+		self.r_sup=r_sup
 	def set_dept_name(self, name):
 		self.dept_name = name 
 	def set_sup(self,sup):
@@ -74,6 +74,7 @@ def compute_support(k, node_list, data_frame):
 	return node_list
 
 def find_support(dept_name, Frequent_set):
+
 	for node in Frequent_set:
 		if(len(node.dept_name.intersection(dept_name)) == len(dept_name)):
 			return node.sup
@@ -86,28 +87,31 @@ def find_max_elem_len(setOfSets):
 	return max_elem_len
 
 class Rule:
-	def __init__(self, X = set(), Y = set(), sup_Z = 0, c = 0, rsup=0, lift=0):
+	def __init__(self, X = set(), Y = set(), sup_Y = 0, sup_Z = 0, c = 0, r_sup=0, lift=0):
 		self.X = X
 		self.Y = Y
+		self.sup_Y = sup_Y
 		self.sup_Z = sup_Z
 		self.c = c
-		self.rsup=rsup
+		self.r_sup=r_sup
 		self.lift=lift
 
 	def set_X(self, X):
 		self.X = X
 	def set_Y(self, Y):
 		self.Y = Y
+	def set_sup_Y(self, sup_Y):
+		self.sup_Y = sup_Y
 	def set_sup_Z(self, sup_Z):
 		self.sup_Z = sup_Z
 	def set_c(self, c):
 		self.c = c
-	def set_rsup(self, rsup):
-		self.rsup = rsup
+	def set_r_sup(self, r_sup):
+		self.r_sup = r_sup
 	def set_lift(self, lift):
 		self.lift = lift
 
-def run(file_path, MINSUP, MINCONF):
+def run(file_path, MINSUP, MINCONF, k):
 
 	data, colnames = read_csv(file_path)
 
@@ -231,19 +235,24 @@ def run(file_path, MINSUP, MINCONF):
 					if (len(aSet) == max_elem_len):
 						max_elem = aSet
 						break
-				# print("Z dept name is ") 
-				# print(Z.dept_name)
-				# print("max_elem is ")
-				# print(max_elem)
-				# print("A is ")
-				# print(A)
+
 				A.remove(max_elem)
 				if (len(A) == 0):
 					continue
 				c = Z.sup / find_support(max_elem, F)
 			
 				if (c > MINCONF):
-					newRule = Rule(X = set(max_elem).copy(), Y = A.copy(), sup_Z = Z.sup, c = c)
+
+					# sup_Y = find_support(set(A.copy()), F)
+
+					Y = Z.dept_name.copy()
+					
+					for item in max_elem:
+						Y.remove(item)
+
+					sup_Y = find_support(Y, F)
+
+					newRule = Rule(X = set(max_elem).copy(), Y = Y.copy(), sup_Y = sup_Y, sup_Z = Z.sup, c = c)
 					rules.append(newRule)
 				else:
 					if (len(max_elem) > 1):
@@ -252,16 +261,46 @@ def run(file_path, MINSUP, MINCONF):
 							tempset=set(itertools.combinations(max_elem,i))
 							for aSet in tempset:
 								A.remove(aSet)
-				# print("c value is " + str(c))
 
 
-	for rule in rules:
-		print("This is a new rule >>>>>>>>>>>>>>>>>>>")
+	rule_list_for_ranking_lift = {}
+	rule_list_for_ranking_rsup = {}
+
+	for i,rule in enumerate(rules):
+		rule.set_r_sup(rule.sup_Z / len(unique_txns))
+		rule.set_lift(rule.c / rule.sup_Y)
+		print("This is a rule >>>>>>>>>>>>>>>>>>>")
 		print("X is " + str(rule.X) + " and Y is " + str(rule.Y))
+
+		print("sup(Y) is " + str(rule.sup_Y))
 		print("sup(Z) is " + str(rule.sup_Z))
+
 		print("c is " + str(rule.c))
+		lift = rule.c /(rule.sup_Y / len(unique_txns))
+		print("lift is " + str(lift) + "\n\n\n")
+
+		# temp_dict = {}
+		# temp_dict[abs(lift -1)] = str(rule.X) + "---->" + str(rule.Y)
+		rule_list_for_ranking_lift[str(abs(lift -1))] = str(rule.X) + "---->" + str(rule.Y)
+		rule_list_for_ranking_rsup[str(rule.sup_Z)] = str(rule.X) + "---->" + str(rule.Y)
 
 
-#print(str())
+	rule_list_lift = sorted(rule_list_for_ranking_lift, reverse = True)
+	rule_list_rsup = sorted(rule_list_for_ranking_rsup, reverse = False)
+
+	# print(rule_list_for_ranking_lift)
+	print("Ranking based on lift value >>>>>>>>>>>>>>")
+	i = 0
+	for rule in rule_list_lift:
+		if i < k:
+			print(str(rule) + ":" + rule_list_for_ranking_lift[rule])
+			i += 1
+
+	print("Ranking based on relative support value >>>>>>>>>>>>>>")
+	j = 0
+	for rule in rule_list_rsup:
+		if (j < k):
+			print(str(rule) + ":" + rule_list_for_ranking_rsup[rule])
+			j += 1
 if __name__ == '__main__':
-	run("txn_by_dept.csv", MINSUP, MINCONF)
+	run("txn_by_dept.csv", MINSUP, MINCONF, 5)
