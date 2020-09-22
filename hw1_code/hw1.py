@@ -4,9 +4,9 @@ import pandas as pd
 
 import sys
 
-MINSUP = int(sys.argv[1])
-MINCONF = float(sys.argv[2])
-k = int(sys.argv[3])
+MINSUP =  15# int(sys.argv[1])
+MINCONF = 0.1 # float(sys.argv[2])
+k = 5 # int(sys.argv[3])
 
 def read_csv(file_path):
 	colnames = ""
