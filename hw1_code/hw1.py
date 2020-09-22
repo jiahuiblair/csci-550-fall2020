@@ -2,8 +2,11 @@ import itertools
 import numpy as np
 import pandas as pd 
 
-MINSUP = 15
-MINCONF = 0.01
+import sys
+
+MINSUP = int(sys.argv[1])
+MINCONF = float(sys.argv[2])
+k = int(sys.argv[3])
 
 def read_csv(file_path):
 	colnames = ""
@@ -303,4 +306,4 @@ def run(file_path, MINSUP, MINCONF, k):
 			print(str(rule) + ":" + rule_list_for_ranking_rsup[rule])
 			j += 1
 if __name__ == '__main__':
-	run("txn_by_dept.csv", MINSUP, MINCONF, 5)
+	run("txn_by_dept.csv", MINSUP, MINCONF, k)
