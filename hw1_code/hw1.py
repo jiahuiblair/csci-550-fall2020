@@ -107,7 +107,7 @@ class Rule:
 	def set_lift(self, lift):
 		self.lift = lift
 
-def extract_data(file_path, MINSUP, MINCONF):
+def run(file_path, MINSUP, MINCONF):
 
 	data, colnames = read_csv(file_path)
 
@@ -261,6 +261,7 @@ def extract_data(file_path, MINSUP, MINCONF):
 		print("sup(Z) is " + str(rule.sup_Z))
 		print("c is " + str(rule.c))
 
+
 #print(str())
 if __name__ == '__main__':
-	extract_data("txn_by_dept.csv", MINSUP, MINCONF)
+	run("txn_by_dept.csv", MINSUP, MINCONF)
